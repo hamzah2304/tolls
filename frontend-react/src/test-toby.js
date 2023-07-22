@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { MapContainer, TileLayer, Marker, Rectangle } from "react-leaflet";
 import 'leaflet/dist/leaflet.css';
@@ -10,11 +10,48 @@ const ICON = icon({
   iconSize: [32, 32],
 })
 
-const Toby = () => {
+const Toby = ({purchaseModalOpenState, tollModalOpenState}) => {
+  console.log(purchaseModalOpenState)
+  let [purchaseModalOpen,setPurchaseModalOpen] = purchaseModalOpenState;
+  let [tollModalOpen,setTollModalOpen] = tollModalOpenState;
+
+  console.log('Toby component is rendering');
+
   const [location, setLocation] = useState({
     latitude: null,
     longitude: null,
   });
+
+  let setInitLoc = false;
+  
+  const [rectangleSets,setRectangleSets] = useState([]);
+  
+  let [onloadOrigin,setOnloadOrigin] = useState({});
+
+  
+  let [owned,_setOwned] = useState({
+    0: {
+      0: 'other',
+      1: 'yourself',
+      2: 'other',
+    },
+    1: {
+      '-1': 'yourself',
+      0: 'yourself',
+      1: 'yourself',
+      2: 'other',
+      3: 'other',
+    },
+    2: {
+      0: 'other',
+      1: 'other',
+    }
+  });
+  const ownedRef = useRef(owned);
+  const setOwned = (newOwned) => {
+    ownedRef.current = newOwned;
+    _setOwned(newOwned);
+  };
 
   const getLocation = () => {
     if (navigator.geolocation) {
@@ -79,9 +116,21 @@ const Toby = () => {
   //     )}
   //   </div>
   // </div>
+  
+  // <p>Latitude: {location.latitude}</p>
+  // <p>Longitude: {location.longitude}</p>
+  // <a
+  //   href={`https://www.openstreetmap.org/?mlat=${location.latitude}&mlon=${location.longitude}#map=14/${location.latitude}/${location.longitude}`}
+  //   target="_blank"
+  //   rel="noopener noreferrer"
+  // >
+  //   Open in Maps
+  // </a>
 
-  function BottomLeftCorner(point,meters){
-    return {latitude:Math.floor(point.latitude*111139/meters)/(111139/meters),longitude:Math.floor(point.longitude*111139/meters)/(111139/meters)};
+  function InitBottomLeftCorner(point,meters){
+    let origin = {coorLat:Math.floor(point.latitude*111139/meters),coorLng:Math.floor(point.longitude*111139/meters)};
+    setOnloadOrigin(origin)
+    return {latitude:origin.coorLat/(111139/meters),longitude:origin.coorLng/(111139/meters)};
   }
   
   function CornerPoint(point,meters,hor,ver){
@@ -103,37 +152,12 @@ const Toby = () => {
     return {bottomleft:point1,topright:point2,bottomright:{latitude:point1.latitude,longitude:point2.longitude},topleft:{latitude:point2.latitude,longitude:point1.longitude},rect:[[point1.latitude,point1.longitude],[point2.latitude,point2.longitude]],x:x,y:y};
   }
   
-  
-  let setInitLoc = false;
-  
-  const [rectangleSets,setRectangleSets] = useState([]);
-  
-  
-  let owned = {
-    0: {
-      0: 'other',
-      1: 'yourself',
-      2: 'other',
-    },
-    1: {
-      '-1': 'yourself',
-      0: 'yourself',
-      1: 'yourself',
-      2: 'other',
-      3: 'other',
-    },
-    2: {
-      0: 'other',
-      1: 'other',
-    }
-  }
-  
   useEffect(()=>{
     if (!setInitLoc){
       setInitLoc = true;
       let rects = [];
-      let homeBottomLeft = BottomLeftCorner(location,10);
-      console.log('w',window.innerWidth)
+      let homeBottomLeft = InitBottomLeftCorner(location,10);
+      console.log('onloadOrigin',onloadOrigin)
       let xradius = Math.ceil(window.innerWidth/(2*104));
       let yradius = Math.ceil(window.innerHeight/(2*104));
       let home = buildRectangle(homeBottomLeft,10);
@@ -167,10 +191,14 @@ const Toby = () => {
           if (i>2 && j>1) rects.push(nextxlyd)
         }
       }
-      console.log(rects)
       setRectangleSets(rects);
     }
   },[location]);
+  
+  useEffect(() => {
+    console.log(owned)
+  }, [owned]);
+
   
   const grayOptions = { color: 'gray' }
   const greenOptions = { color: 'green' }
@@ -178,18 +206,9 @@ const Toby = () => {
 
   return (
     <div>
-      <div>
+      <div className={rectangleSets.length ? "rectanglesloaded":"rectanglesunloaded"}>
         {location.latitude && location.longitude ? (
           <div>
-            <p>Latitude: {location.latitude}</p>
-            <p>Longitude: {location.longitude}</p>
-            <a
-              href={`https://www.openstreetmap.org/?mlat=${location.latitude}&mlon=${location.longitude}#map=14/${location.latitude}/${location.longitude}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Open in Maps
-            </a>
             <MapContainer
               center={[location.latitude, location.longitude]}
               zoom={20}
@@ -204,15 +223,32 @@ const Toby = () => {
                 url="https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
               />
-              {rectangleSets.length && rectangleSets.map((rectObj) => { 
+              {rectangleSets.length && rectangleSets.map((rectObj) => {
+                const currentOwned = ownedRef.current;
                 let ownership = "unowned";
-                if (rectObj.y in owned && rectObj.x in owned[rectObj.y]){
-                  ownership = owned[rectObj.y][rectObj.x];
+                if (rectObj.y in currentOwned && rectObj.x in currentOwned[rectObj.y]){
+                  ownership = ownedRef.current[rectObj.y][rectObj.x];
                 }
-                return (<Rectangle bounds={rectObj.rect} className={"styled-rectangle-"+ownership} eventHandlers={{
+                return (<Rectangle key={`${rectObj.x}-${rectObj.y}-${ownership}`} bounds={rectObj.rect} className={"styled-rectangle-"+ownership} eventHandlers={{
                   click: ()=>{
                     console.log(rectObj.x,rectObj.y)
-                    alert('square is owned by: '+ownership+' ['+rectObj.x+','+rectObj.y+']')
+                    // alert('square is owned by: '+ownership+' ['+rectObj.x+','+rectObj.y+']')
+                    console.log('send query to location: ['+parseInt(onloadOrigin.coorLat+rectObj.x)+','+parseInt(onloadOrigin.coorLng+rectObj.y)+']');
+                    
+                    const currentOwned = JSON.parse(JSON.stringify(ownedRef.current)); // deep copy
+                    if(!currentOwned[rectObj.y]) {
+                      currentOwned[rectObj.y] = {};
+                    }
+                    currentOwned[rectObj.y][rectObj.x] = 'yourself';
+                    setPurchaseModalOpen(true);
+                    setOwned(currentOwned);
+                    // setOwned((prevState) => ({
+                    //   ...prevState,
+                    //   [rectObj.y]:{
+                    //     ...(currentOwned[rectObj.y] || {}),
+                    //     [rectObj.x]:'other'
+                    //   }
+                    // }));
                   },
                 }}/>)
               })}
@@ -220,7 +256,9 @@ const Toby = () => {
             </MapContainer>
           </div>
         ) : (
-          <p>Loading...</p>
+          <div className="loading-container">
+            <p>Loading...</p>
+          </div>
         )}
       </div>
     </div>

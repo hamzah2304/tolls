@@ -2,6 +2,11 @@
   pointer-events: none;
 }
 
+html body {
+  position: static !important;
+  background: rgb(218,211,211);
+}
+
 .leaflet-container {
   width: 100%;
   height: 100vh;
@@ -28,4 +33,11 @@
   fill: grey; /* Set the fill color to red */
   stroke: grey; /* Set the border color to grey */
   stroke-width: 2px; /* Set the border width to 2 pixels */
+}
+
+.loading-container {
+  margin:auto;
+}
+.loading-container p {
+  text-align: center;
 }
