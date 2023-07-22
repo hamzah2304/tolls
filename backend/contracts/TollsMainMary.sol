@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
 // Things to do
@@ -57,32 +55,23 @@ contract TollsMain {
     // Mapping to keep track of users
     mapping(address => User) public users;
 
-    // Mapping from user address to the user's balance
-    mapping(address => uint256) public creditBalances
+    mapping(address => uint256) public userCredit;
 
-    // Functions
 
-    constructor() {
-        // CHANGE NAMES
-        _setupRole(MINTER_ROLE, msg.sender); // only deployer of contract controls land purchase price
-    }
 
-    // Function to grant the LAND_OWNER_ROLE. Initially only to the owner. The owner can then grant
-    // permission to others through grantLandOwnerRole(address).
-    // May not need this
-    function grantLandOwnerRole(address user) public {
-        //onlyRole(DEFAULT_OWNER_ROLE)
-        _setupRole(LAND_OWNER_ROLE, user);
-    }
+
+    // Function to grant the LAND_OWNER_ROLE. initially only to the owner. the owner can then grant 
+    //permission to others through grantLandOwnerRole(address). may not need that
+    //function grantLandOwnerRole(address user) public { //onlyRole(DEFAULT_OWNER_ROLE)
+    //    _setupRole(LAND_OWNER_ROLE, user);
+    //}
 
     // Function to buy land area
     function buyLandArea(uint256 latitude, uint256 longitude) external payable {
         uint256 gridLatitude = latitude / 1;
         uint256 gridLongitude = longitude / 1;
 
-        _setupRole(LAND_OWNER_ROLE, user); // become owners immediately w/o restriction
-
-        // require(hasRole(LAND_OWNER_ROLE, msg.sender), "You are not permitted to buy this land at the moment.");
+        //_setupRole(LAND_OWNER_ROLE, user); //become owners immediately wo restriction
 
         // Fix to 0.1 MATIC OR ETH etc
         // Check if sufficient value is sent
@@ -105,20 +94,12 @@ contract TollsMain {
         landAreas[gridLatitude][gridLongitude].latitude = latitude;
         landAreas[gridLatitude][gridLongitude].longitude = longitude;
 
-        emit LandAreaPurchased(
-            msg.sender,
-            gridLatitude,
-            gridLongitude,
-            landAreas[gridLatitude][gridLongitude].price
-        );
+        emit LandAreaPurchased(msg.sender, gridLatitude, gridLongitude, landAreas[gridLatitude][gridLongitude].price);
     }
 
-    // Function to update land area price for a given land area (only the deployer of the contract can access)
-    function updateLandAreaPrice(
-        uint256 latitude,
-        uint256 longitude,
-        uint256 newPrice
-    ) external onlyRole(MINTER_ROLE) {
+
+    // Function to update land area price (only the deployer of the contract can access)
+    function updateLandAreaPrice(uint256 latitude, uint256 longitude, uint256 newPrice) external {
         uint256 gridLatitude = latitude / 1;
         uint256 gridLongitude = longitude / 1;
 
@@ -130,11 +111,23 @@ contract TollsMain {
 
     // Function to deposit credits to the user's account
     // Security stuff!!!!!
-    function depositCredits(uint256 amount) external {
-        creditBalances[msg.sender] = amount
 
-        // emit Event
+    function depositCredits(uint256 amount) external payable {
+        require(amount > 0, "Amount must be greater than zero");
+        userCredit[msg.sender] += amount;
+    }
+
+    // Function to burn tokens (eg when a user exits the platform)
+    //function burnTokens(uint256 amount) external {
+    //    _burn(msg.sender, amount);
+    //}
+
+            // emit Event
         // other stuff
+
+    // Function to get the user's credit balance
+    function getBalance(address account) external view returns (uint256) {
+        return account.balance;
     }
 
     // The areas are 10x10. the location should contantly be fetched by some function
@@ -142,18 +135,15 @@ contract TollsMain {
     // who is not you, you have to pay 10$.
     // updateLocation -> createPayment (if owned)
 
-    function createPayment(address user, address landOwner, uint256 paymentAmount) internal {
-        require(
-            address(this).balance >= paymentAmount,
-            "Insufficient contract balance for payment"
-            // Invoicing stuff?
-        );
 
-        // Does this work?
-        bool paymentSuccessful = transfer(landOwner, paymentAmount);
-        require(paymentSuccessful, "Payment failed");
 
-        creditBalances[user] -= paymentAmount
+    function createPayment(address user, address landOwner, uint256 paymentAmount, uint256 latitude, uint256 longitude) internal {
+        require(address(this).balance >= paymentAmount, "Insufficient contract balance for payment");
+        (bool success, ) = landOwner.call{value: paymentAmount}("");
+        require(success, "Payment failed");
+        emit TollPayment(msg.sender, latitude, longitude, paymentAmount);
+
+        userCredit[user] -= paymentAmount;
     
         emit TollPayment(
             user,
@@ -173,11 +163,14 @@ contract TollsMain {
         uint256 gridLongitude = longitude / 1;
 
         // Check if there exists an owner
-        if (landAreas[gridLatitude][gridLongitude].owner; == address(0)) {
+        if (landAreas[gridLatitude][gridLongitude].owner == address(0)) {
+            address landOwner = landAreas[gridLatitude][gridLongitude].owner;
             // Is the owner the user? If not: 
-            uint256 paymentAmount = landAreas[gridLatitude][gridLongitude]
-                .price;
-            createPayment(msg.sender, landOwner, paymentAmount);
+            if (landOwner != msg.sender) {
+                uint256 paymentAmount = landAreas[gridLatitude][gridLongitude].price;
+                createPayment(msg.sender, landOwner, paymentAmount, latitude, longitude);
+            }
+     
         }
     }
 }
