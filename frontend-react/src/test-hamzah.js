@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 
-const IndexPage = () => {
+const Hamzah = () => {
   const [location, setLocation] = useState({
     latitude: null,
     longitude: null,
   });
 
   const getLocation = () => {
-    if (navigator.geolocation) {
+    if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(success, error);
     } else {
       alert("Geolocation is not supported by this browser.");
@@ -104,4 +104,4 @@ const IndexPage = () => {
   );
 };
 
-export default IndexPage;
+export default Hamzah;

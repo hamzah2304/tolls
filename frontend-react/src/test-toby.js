@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 
-const IndexPage = () => {
+const Toby = () => {
   const [location, setLocation] = useState({
     latitude: null,
     longitude: null,
@@ -28,7 +28,7 @@ const IndexPage = () => {
   };
 
   useEffect(() => {
-    if (navigator.geolocation) {
+    if ("geolocation" in navigator) {
       const watchId = navigator.geolocation.watchPosition((position) => {
         setLocation({
           latitude: position.coords.latitude,
@@ -104,4 +104,4 @@ const IndexPage = () => {
   );
 };
 
-export default IndexPage;
+export default Toby;
