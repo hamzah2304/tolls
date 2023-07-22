@@ -1,29 +1,28 @@
 {
-  "name": "new-app",
+  "name": "tolls",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "marketplace": "npx create-web3-dapp marketplace"
   },
   "dependencies": {
-    "connectkit": "^1.4.0",
-    "encoding": "^0.1.13",
-    "eslint": "8.42.0",
-    "eslint-config-next": "13.4.4",
-    "fs": "^0.0.1-security",
-    "lokijs": "^1.5.12",
-    "next": "13.4.4",
-    "pino-pretty": "^10.0.0",
+    "@rainbow-me/rainbowkit": "^0.12.4",
+    "alchemy-sdk": "^2.6.2",
+    "next": "13.1.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "tls": "^0.0.1",
-    "viem": "^0.3.50",
-    "wagmi": "^1.0.9"
+    "react-hooks": "^1.0.1",
+    "wagmi": "^0.12.6"
   },
   "devDependencies": {
-    "@types/react": "18.2.14"
+    "autoprefixer": "^10.4.14",
+    "eslint": "8.36.0",
+    "eslint-config-next": "13.2.4",
+    "postcss": "^8.4.24",
+    "tailwindcss": "^3.3.2"
   }
 }
