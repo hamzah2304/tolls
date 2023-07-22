@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { getUserCredit, loadCurrentMessage } from "./interact";
 
 const Hamzah = () => {
   const [location, setLocation] = useState({
@@ -6,6 +7,9 @@ const Hamzah = () => {
     longitude: null,
   });
   const [manualLocation, setManualLocation] = useState();
+  const [balance, setBalance] = useState("No balance retrieved");
+  const [message, setMessage] = useState("No connection to the network.");
+  const [newMessage, setNewMessage] = useState("");
 
   const getLocation = () => {
     if ("geolocation" in navigator) {
@@ -30,9 +34,24 @@ const Hamzah = () => {
     setManualLocation(squareLocation);
   };
 
+  useEffect(() => {
+    async function fetchMessage() {
+      const message = await loadCurrentMessage();
+      setMessage(message);
+    }
+    async function getBalance() {
+      const retrievedBalance = await getUserCredit(
+        "0xD26a77BE873CDc25F0238634326f85986E6cBd1F"
+      );
+      setBalance(retrievedBalance);
+    }
+    getBalance();
+    fetchMessage();
+  }, []);
+
   return (
     <div>
-      <div className="flex justify-center items-center h-screen">
+      <div className={"flex justify-center items-center h-screen"}>
         <div>
           <h1 className="text-3xl font-bold mb-4">Location App - Hamzah</h1>
           <button
@@ -88,6 +107,8 @@ const Hamzah = () => {
           </button>
           <p>Location set manually: {manualLocation}</p>
           <p>Location retrieved from chain:</p>
+          <p>Message test: {message}</p>
+          <p>userCredit balance: {balance}</p>
         </div>
       </div>
     </div>

@@ -480,9 +480,81 @@
       ]
     },
     "/Users/hamzahmahmood/Downloads/ETHGlobal Paris/tolls/backend/contracts/TollsMain_Hamzah.sol": {
-      "lastModificationDate": 1690050958240,
-      "contentHash": "5bafb11ea18aca12b3812619a913b720",
+      "lastModificationDate": 1690055372542,
+      "contentHash": "f89ee74261d5f26dbb9a5b578830df24",
       "sourceName": "contracts/TollsMain_Hamzah.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/access/AccessControl.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "TollsMain"
+      ]
+    },
+    "/Users/hamzahmahmood/Downloads/ETHGlobal Paris/tolls/backend/contracts/HelloWorld.sol": {
+      "lastModificationDate": 1690063747922,
+      "contentHash": "50ad6f025076903d36c7763949599c23",
+      "sourceName": "contracts/HelloWorld.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.7.3"
+      ],
+      "artifacts": [
+        "HelloWorld"
+      ]
+    },
+    "/Users/hamzahmahmood/Downloads/ETHGlobal Paris/tolls/backend/contracts/TollsMain.sol": {
+      "lastModificationDate": 1690057871136,
+      "contentHash": "d721abf4fcdd590de951601a915533fb",
+      "sourceName": "contracts/TollsMain.sol",
       "solcConfig": {
         "version": "0.8.9",
         "settings": {

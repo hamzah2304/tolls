@@ -57,10 +57,7 @@ contract TollsMain {
 
     mapping(address => uint256) public userCredit;
 
-
-
-
-    // Function to grant the LAND_OWNER_ROLE. initially only to the owner. the owner can then grant 
+    // Function to grant the LAND_OWNER_ROLE. initially only to the owner. the owner can then grant
     //permission to others through grantLandOwnerRole(address). may not need that
     //function grantLandOwnerRole(address user) public { //onlyRole(DEFAULT_OWNER_ROLE)
     //    _setupRole(LAND_OWNER_ROLE, user);
@@ -94,12 +91,20 @@ contract TollsMain {
         landAreas[gridLatitude][gridLongitude].latitude = latitude;
         landAreas[gridLatitude][gridLongitude].longitude = longitude;
 
-        emit LandAreaPurchased(msg.sender, gridLatitude, gridLongitude, landAreas[gridLatitude][gridLongitude].price);
+        emit LandAreaPurchased(
+            msg.sender,
+            gridLatitude,
+            gridLongitude,
+            landAreas[gridLatitude][gridLongitude].price
+        );
     }
 
-
     // Function to update land area price (only the deployer of the contract can access)
-    function updateLandAreaPrice(uint256 latitude, uint256 longitude, uint256 newPrice) external {
+    function updateLandAreaPrice(
+        uint256 latitude,
+        uint256 longitude,
+        uint256 newPrice
+    ) external {
         uint256 gridLatitude = latitude / 1;
         uint256 gridLongitude = longitude / 1;
 
@@ -122,8 +127,8 @@ contract TollsMain {
     //    _burn(msg.sender, amount);
     //}
 
-            // emit Event
-        // other stuff
+    // emit Event
+    // other stuff
 
     // Function to get the user's credit balance
     function getBalance(address account) external view returns (uint256) {
@@ -135,16 +140,23 @@ contract TollsMain {
     // who is not you, you have to pay 10$.
     // updateLocation -> createPayment (if owned)
 
-
-
-    function createPayment(address user, address landOwner, uint256 paymentAmount, uint256 latitude, uint256 longitude) internal {
-        require(address(this).balance >= paymentAmount, "Insufficient contract balance for payment");
+    function createPayment(
+        address user,
+        address landOwner,
+        uint256 paymentAmount,
+        uint256 latitude,
+        uint256 longitude
+    ) internal {
+        require(
+            address(this).balance >= paymentAmount,
+            "Insufficient contract balance for payment"
+        );
         (bool success, ) = landOwner.call{value: paymentAmount}("");
         require(success, "Payment failed");
         emit TollPayment(msg.sender, latitude, longitude, paymentAmount);
 
         userCredit[user] -= paymentAmount;
-    
+
         emit TollPayment(
             user,
             uint256(latitude),
@@ -165,12 +177,18 @@ contract TollsMain {
         // Check if there exists an owner
         if (landAreas[gridLatitude][gridLongitude].owner == address(0)) {
             address landOwner = landAreas[gridLatitude][gridLongitude].owner;
-            // Is the owner the user? If not: 
+            // Is the owner the user? If not:
             if (landOwner != msg.sender) {
-                uint256 paymentAmount = landAreas[gridLatitude][gridLongitude].price;
-                createPayment(msg.sender, landOwner, paymentAmount, latitude, longitude);
+                uint256 paymentAmount = landAreas[gridLatitude][gridLongitude]
+                    .price;
+                createPayment(
+                    msg.sender,
+                    landOwner,
+                    paymentAmount,
+                    latitude,
+                    longitude
+                );
             }
-     
         }
     }
 }
