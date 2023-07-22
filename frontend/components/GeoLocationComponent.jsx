@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
+import styles from "../styles/GeoLocationComponent.module.css";
 
 const GeoLocationComponent = () => {
   const [location, setLocation] = useState({
