@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 
-const IndexPage = () => {
+const Hamzah = () => {
   const [location, setLocation] = useState({
     latitude: null,
     longitude: null,
@@ -104,4 +104,4 @@ const IndexPage = () => {
   );
 };
 
-export default IndexPage;
+export default Hamzah;
