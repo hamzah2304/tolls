@@ -9,7 +9,7 @@ const IndexPage = () => {
   });
 
   const getLocation = () => {
-    if (navigator.geolocation) {
+    if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(success, error);
     } else {
       alert("Geolocation is not supported by this browser.");

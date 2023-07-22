@@ -28,7 +28,7 @@ const IndexPage = () => {
   };
 
   useEffect(() => {
-    if (navigator.geolocation) {
+    if ("geolocation" in navigator) {
       const watchId = navigator.geolocation.watchPosition((position) => {
         setLocation({
           latitude: position.coords.latitude,
