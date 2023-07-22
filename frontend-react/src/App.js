@@ -3,6 +3,7 @@ import "./App.css";
 import Toby from "./test-toby";
 import Hamzah from "./test-hamzah";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import React, { useState } from "react";
 
 import "@rainbow-me/rainbowkit/styles.css";
 
@@ -33,20 +34,28 @@ const wagmiConfig = createConfig({
 });
 
 function App() {
+  let purchaseModalOpenState = useState(false);
+  let tollModalOpenState = useState(false);
+  
   return (
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider chains={chains}>
         <Router>
-          <Navbar />
+          <Navbar purchaseModalOpenState={purchaseModalOpenState} tollModalOpenState={tollModalOpenState} />
           <div className="App">
-            <p>
-              <Link to="/test-toby">Test Toby</Link>
-            </p>
-            <p>
-              <Link to="/test-hamzah">Test Hamzah</Link>
-            </p>
+            { (window.location.pathname != '/test-toby') ? (
+              <>
+                <p>
+                  <Link to="/test-toby">Test Toby</Link>
+                </p>
+                <p>
+                  <Link to="/test-hamzah">Test Hamzah</Link>
+                </p>
+              </>
+              ) : (<></>)
+            }
             <Routes>
-              <Route exact path="/test-toby" element={<Toby />}></Route>
+              <Route exact path="/test-toby" element={<Toby purchaseModalOpenState={purchaseModalOpenState} tollModalOpenState={tollModalOpenState} />}></Route>
               <Route exact path="/test-hamzah" element={<Hamzah />}></Route>
             </Routes>
           </div>
