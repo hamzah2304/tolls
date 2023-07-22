@@ -11,11 +11,16 @@
   },
   "dependencies": {
     "@rainbow-me/rainbowkit": "^0.12.4",
+    "@react-leaflet/core": "^2.1.0",
     "alchemy-sdk": "^2.6.2",
+    "axios": "^1.4.0",
+    "leaflet": "^1.9.4",
     "next": "13.1.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-hooks": "^1.0.1",
+    "react-leaflet": "^4.2.1",
+    "react-router-dom": "^6.14.2",
     "wagmi": "^0.12.6"
   },
   "devDependencies": {
