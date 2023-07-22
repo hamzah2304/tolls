@@ -24,24 +24,32 @@ const IndexPage = () => {
   };
 
   return (
-    <div>
-      <h1>Location App</h1>
-      <button onClick={getLocation}>Get My Location</button>
-      {location && (
-        <div>
-          <p>Latitude: {location.latitude}</p>
-          <p>Longitude: {location.longitude}</p>
-          <p>
-            <a
-              href={`https://www.openstreetmap.org/?mlat=${location.latitude}&mlon=${location.longitude}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Open Maps
-            </a>
-          </p>
-        </div>
-      )}
+    <div className="flex justify-center items-center h-screen">
+      <div>
+        <h1 className="text-3xl font-bold mb-4">Location App</h1>
+        <button
+          className="px-4 py-2 bg-blue-500 text-white rounded"
+          onClick={getLocation}
+        >
+          Get My Location
+        </button>
+        {location && (
+          <div className="mt-4">
+            <p>Latitude: {location.latitude}</p>
+            <p>Longitude: {location.longitude}</p>
+            <p>
+              <a
+                href={`https://www.openstreetmap.org/?mlat=${location.latitude}&mlon=${location.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 underline"
+              >
+                Open Maps
+              </a>
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
