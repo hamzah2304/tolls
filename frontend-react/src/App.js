@@ -1,13 +1,9 @@
-import logo from './logo.svg';
-import './App.css';
-import Toby from './test-toby';
-import Hamzah from './test-hamzah';
-import {
-    BrowserRouter as Router,
-    Routes,
-    Route,
-    Link
-} from 'react-router-dom';
+import logo from "./logo.svg";
+import "./App.css";
+import Toby from "./test-toby";
+import Hamzah from "./test-hamzah";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import Navbar from "./navigation/navbar";
 
 //         <header className="App-header">
 // <div className="App-body">
@@ -24,8 +20,8 @@ function App() {
           </li>
         </ul>
         <Routes>
-          <Route exact path='/test-toby' element={< Toby />}></Route>
-          <Route exact path='/test-hamzah' element={< Hamzah />}></Route>
+          <Route exact path="/test-toby" element={<Toby />}></Route>
+          <Route exact path="/test-hamzah" element={<Hamzah />}></Route>
         </Routes>
       </div>
     </Router>

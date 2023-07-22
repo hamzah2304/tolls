@@ -16,4 +16,9 @@ contract Toll is ERC20, ERC20Burnable, AccessControl {
     function mint(address to, uint256 amount) public onlyRole(MINTER_ROLE) {
         _mint(to, amount);
     }
+
+    // Function to burn tokens (eg when a user exits the platform)
+    function burnTokens(uint256 amount) external {
+        _burn(msg.sender, amount);
+    }
 }
