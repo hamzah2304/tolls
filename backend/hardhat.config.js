@@ -2,7 +2,8 @@ require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config();
 require("@nomiclabs/hardhat-etherscan");
 
-const { ALCHEMY_API_URL, PRIVATE_KEY, POLYGONSCAN_API_KEY } = process.env;
+const { ALCHEMY_API_URL, PRIVATE_KEY, POLYGONSCAN_API_KEY, ETHERSCAN_API_KEY } =
+  process.env;
 
 module.exports = {
   solidity: {
@@ -24,12 +25,16 @@ module.exports = {
       accounts: [`${process.env.PRIVATE_KEY}`],
       url: `https://polygon-mumbai.g.alchemy.com/v2/${process.env.MUMBAI_ALCHEMY_API_KEY}`,
     },
+    goerli: {
+      accounts: [`${process.env.PRIVATE_KEY}`],
+      url: `https://eth-goerli.g.alchemy.com/v2/${process.env.GOERLI_ALCHEMY_API_KEY}`,
+    },
   },
   etherscan: {
     apiKey: {
       //ethereum
-      // mainnet: ETHERSCAN_API_KEY,
-      // goerli: ETHERSCAN_API_KEY,
+      mainnet: ETHERSCAN_API_KEY,
+      goerli: ETHERSCAN_API_KEY,
       //polygon
       polygon: POLYGONSCAN_API_KEY,
       polygonMumbai: POLYGONSCAN_API_KEY,

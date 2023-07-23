@@ -12,6 +12,7 @@
     "deploy-local": "npx hardhat run ./scripts/Toll_deploy.js --network localhost"
   },
   "dependencies": {
+    "@alch/alchemy-web3": "^1.4.7",
     "@openzeppelin/contracts": "^4.7.3",
     "dotenv": "^16.0.2"
   },
