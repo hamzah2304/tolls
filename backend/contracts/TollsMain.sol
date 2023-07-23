@@ -9,7 +9,11 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 contract TollsMain {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant LAND_OWNER_ROLE = keccak256("LAND_OWNER_ROLE");
-    uint256 public constant LAND_PRICE_DEFAULT = 0; // Default price in MATIC
+    // uint256 public constant LAND_PRICE_DEFAULT = 0; // Default price in MATIC
+
+    uint private constant MATIC_PER_WEI = 10 ** 18;
+    uint private constant LAND_PRICE_DEFAULT = 100000000000000; // 0.0001 MATIC in wei
+    uint private constant DEFAULT_TOLL_AMOUNT = 5;
 
     // Events
     event TollPayment(
@@ -69,11 +73,15 @@ contract TollsMain {
             "Land area is already owned"
         );
 
-        // Update mappings
-        landAreas[gridLatitude][gridLongitude].owner = msg.sender;
-        landAreas[gridLatitude][gridLongitude].price = LAND_PRICE_DEFAULT;
-        landAreas[gridLatitude][gridLongitude].latitude = latitude;
-        landAreas[gridLatitude][gridLongitude].longitude = longitude;
+        LandArea memory landArea = LandArea({
+            owner: msg.sender,
+            latitude: latitude,
+            longitude: longitude,
+            price: LAND_PRICE_DEFAULT
+        });
+
+        // Update mapping
+        landAreas[gridLatitude][gridLongitude] = landArea;
 
         //Emit once purchased
         emit LandAreaPurchased(
@@ -125,14 +133,20 @@ contract TollsMain {
         uint256 latitude,
         uint256 longitude
     ) internal {
+        // require(
+        //     address(this).balance >= paymentAmount,
+        //     "Insufficient balance for payment"
+        // );
+        // (bool success, ) = owner.call{value: paymentAmount}("");
+        // require(success, "Payment failed");
+
         require(
-            address(this).balance >= paymentAmount,
+            userCredit[user] >= paymentAmount,
             "Insufficient balance for payment"
         );
-        (bool success, ) = owner.call{value: paymentAmount}("");
-        require(success, "Payment failed");
-        emit TollPayment(msg.sender, latitude, longitude, paymentAmount);
         userCredit[user] -= paymentAmount;
+        userCredit[owner] += paymentAmount;
+        emit TollPayment(msg.sender, latitude, longitude, paymentAmount);
     }
 
     // Function to update the user's GPS location and check if a new square is entered and whether it is owned,
@@ -147,8 +161,7 @@ contract TollsMain {
 
         // Check if the land belongs to someone and that person is not the user
         if (landOwner != address(0) && landOwner != msg.sender) {
-            uint256 paymentAmount = landAreas[gridLatitude][gridLongitude]
-                .price;
+            uint256 paymentAmount = DEFAULT_TOLL_AMOUNT;
             createPayment(
                 msg.sender,
                 landOwner,

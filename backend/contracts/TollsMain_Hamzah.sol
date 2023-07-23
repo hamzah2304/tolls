@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 // LandArea structs - do we construct 10 of them in the constructor? Or do we construct them as they are purchased?
 // Assume the toll_amount is the same as purchase price
 
-contract TollsMain {
+contract TollsMain_Hamzah {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant LAND_OWNER_ROLE = keccak256("LAND_OWNER_ROLE");
     uint256 public constant LAND_PRICE_IN_DOLLARS = 10; // Default price in dollars

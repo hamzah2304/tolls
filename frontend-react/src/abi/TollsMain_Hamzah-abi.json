@@ -5,25 +5,6 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "CreditDeposited",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
         "name": "buyer",
         "type": "address"
       },
@@ -89,6 +70,13 @@
   },
   {
     "inputs": [],
+    "name": "LAND_PRICE_IN_DOLLARS",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "MINTER_ROLE",
     "outputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
     "stateMutability": "view",
@@ -110,14 +98,14 @@
     ],
     "name": "depositCredits",
     "outputs": [],
-    "stateMutability": "nonpayable",
+    "stateMutability": "payable",
     "type": "function"
   },
   {
     "inputs": [
       { "internalType": "address", "name": "account", "type": "address" }
     ],
-    "name": "getCreditBalance",
+    "name": "getBalance",
     "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "stateMutability": "view",
     "type": "function"
@@ -169,10 +157,10 @@
     "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
     "name": "users",
     "outputs": [
-      { "internalType": "address", "name": "user", "type": "address" },
+      { "internalType": "address", "name": "userAddress", "type": "address" },
+      { "internalType": "uint256", "name": "creditBalance", "type": "uint256" },
       { "internalType": "uint256", "name": "latitude", "type": "uint256" },
-      { "internalType": "uint256", "name": "longitude", "type": "uint256" },
-      { "internalType": "uint256", "name": "creditBalance", "type": "uint256" }
+      { "internalType": "uint256", "name": "longitude", "type": "uint256" }
     ],
     "stateMutability": "view",
     "type": "function"
