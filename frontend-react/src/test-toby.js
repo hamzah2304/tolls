@@ -10,9 +10,11 @@ const ICON = icon({
   iconSize: [32, 32],
 })
 
-const Toby = ({purchaseModalOpenState, tollModalOpenState}) => {
+const Toby = ({purchaseModalOpenState, tollModalOpenState, readYourselfModalOpenState, readOtherModalOpenState, ownedState}) => {
   console.log(purchaseModalOpenState)
   let [purchaseModalOpen,setPurchaseModalOpen] = purchaseModalOpenState;
+  let [readYourselfModalOpen,setReadYourselfModalOpen] = readYourselfModalOpenState;
+  let [readOtherModalOpen,setReadOtherModalOpen] = readOtherModalOpenState;
   let [tollModalOpen,setTollModalOpen] = tollModalOpenState;
 
   console.log('Toby component is rendering');
@@ -22,36 +24,26 @@ const Toby = ({purchaseModalOpenState, tollModalOpenState}) => {
     longitude: null,
   });
 
+  const [lastLoc, setLastLoc] = useState({
+    coorLat: null,
+    coorLng: null
+  });
+
+  const [isLocationLoaded, setIsLocationLoaded] = useState(false);
+
   let setInitLoc = false;
   
   const [rectangleSets,setRectangleSets] = useState([]);
   
   let [onloadOrigin,setOnloadOrigin] = useState({});
-
   
-  let [owned,_setOwned] = useState({
-    0: {
-      0: 'other',
-      1: 'yourself',
-      2: 'other',
-    },
-    1: {
-      '-1': 'yourself',
-      0: 'yourself',
-      1: 'yourself',
-      2: 'other',
-      3: 'other',
-    },
-    2: {
-      0: 'other',
-      1: 'other',
-    }
-  });
-  const ownedRef = useRef(owned);
-  const setOwned = (newOwned) => {
-    ownedRef.current = newOwned;
-    _setOwned(newOwned);
-  };
+  let [owned,setOwned] = ownedState;
+  // 
+  // const ownedRef = useRef(owned);
+  // const setOwned = (newOwned) => {
+  //   ownedRef.current = newOwned;
+  //   _setOwned(newOwned);
+  // };
 
   const getLocation = () => {
     if (navigator.geolocation) {
@@ -71,24 +63,95 @@ const Toby = ({purchaseModalOpenState, tollModalOpenState}) => {
     alert("Unable to retrieve your location.");
     console.error(error);
   };
+  
+  function initLocTransaction(ownership){
+    if (ownership=='other'){
+      setTollModalOpen({open:true});
+      console.log('location + pay toll')
+    } else {
+      console.log('just location')
+    }
+  }
+
+  useEffect(()=>{
+    console.log('changed',onloadOrigin);
+    setLastLoc({coorLat:0,coorLng:0});
+    initLocTransaction(owned[0][0]);
+  },[onloadOrigin]);
 
   useEffect(() => {
     if ("geolocation" in navigator) {
-      const watchId = navigator.geolocation.watchPosition((position) => {
+//       const watchId = navigator.geolocation.watchPosition((position) => {
+//         console.log('hey');
+//         setLocation({
+//           latitude: position.coords.latitude,
+//           longitude: position.coords.longitude,
+//         });
+//         console.log(position.coords)
+//       });
+// 
+//       // Cleanup function to stop watching the user's location when the component unmounts
+//       return () => navigator.geolocation.clearWatch(watchId);
+      navigator.geolocation.getCurrentPosition((position) => {
+      console.log('loc original',position)
         setLocation({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         });
-        console.log(position.coords)
+        setIsLocationLoaded(true);
+      }, (error) => {
+        alert("Unable to retrieve your location.");
+        console.error(error);
       });
-
-      // Cleanup function to stop watching the user's location when the component unmounts
-      return () => navigator.geolocation.clearWatch(watchId);
     } else {
       alert("Geolocation is not supported by this browser.");
     }
   }, []);
   
+  
+  useEffect(() => {
+    console.log('use',lastLoc)
+    if (lastLoc.coorLat!=null && lastLoc.coorLng!=null){
+      function handleKeyPress(event) {
+        console.log(`Pressed key: ${event.key}`);
+        if (event.key==='r'){
+          if (navigator.geolocation) {
+            console.log('start get loc r')
+            navigator.geolocation.getCurrentPosition((position) => {
+              console.log('loc r',position)
+                setLocation({
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                });
+                let newLoc = determineLatticeCoor(position.coords,10);
+                console.log(newLoc,lastLoc)
+                if (newLoc.coorLat!=lastLoc.coorLat || newLoc.coorLng!=lastLoc.coorLng){
+                  setLastLoc(newLoc);
+                  initLocTransaction(owned[newLoc.coorLng][newLoc.coorLat]);
+                } 
+              }, (error) => {
+                alert("Unable to retrieve your location.");
+                console.error(error);
+              });
+          } else {
+            alert("Geolocation is not supported by this browser.");
+          }
+        }
+      }
+      
+      // Add the keypress event listener to the window
+      window.addEventListener('keypress', handleKeyPress);
+    
+      // Make sure to cleanup the listener when the component is unmounted
+      return () => {
+        window.removeEventListener('keypress', handleKeyPress);
+      }
+    } else {
+      console.log('too early to refresh loc')
+    }
+  }, [lastLoc]);  // Empty array means this effect runs once on mount and cleanup on unmount
+
+
   // <div className="flex justify-center items-center h-screen">
   //   <div>
   //     <h1 className="text-3xl font-bold mb-4">Location App</h1>
@@ -127,10 +190,19 @@ const Toby = ({purchaseModalOpenState, tollModalOpenState}) => {
   //   Open in Maps
   // </a>
 
+  function computeLatticeOriginPosition(point,meters){
+    return {coorLat:Math.floor(point.latitude*111139/meters),coorLng:Math.floor(point.longitude*111139/meters)};
+  }
+
   function InitBottomLeftCorner(point,meters){
-    let origin = {coorLat:Math.floor(point.latitude*111139/meters),coorLng:Math.floor(point.longitude*111139/meters)};
-    setOnloadOrigin(origin)
-    return {latitude:origin.coorLat/(111139/meters),longitude:origin.coorLng/(111139/meters)};
+    let theOrigin = computeLatticeOriginPosition(point,meters);
+    setOnloadOrigin(theOrigin);
+    return {latitude:theOrigin.coorLat/(111139/meters),longitude:theOrigin.coorLng/(111139/meters)};
+  }
+  
+  function determineLatticeCoor(point,meters){
+    let pointCoor = computeLatticeOriginPosition(point,meters);
+    return {coorLat:pointCoor.coorLat-onloadOrigin.coorLat,coorLng:pointCoor.coorLng-onloadOrigin.coorLng};
   }
   
   function CornerPoint(point,meters,hor,ver){
@@ -153,47 +225,43 @@ const Toby = ({purchaseModalOpenState, tollModalOpenState}) => {
   }
   
   useEffect(()=>{
-    if (!setInitLoc){
-      setInitLoc = true;
-      let rects = [];
-      let homeBottomLeft = InitBottomLeftCorner(location,10);
-      console.log('onloadOrigin',onloadOrigin)
-      let xradius = Math.ceil(window.innerWidth/(2*104));
-      let yradius = Math.ceil(window.innerHeight/(2*104));
-      let home = buildRectangle(homeBottomLeft,10);
-      let nextxr = home;
-      for (var i=1;i<=xradius;i+=1){
-        nextxr = buildRectangle(nextxr.bottomright,10,"right","top",i,0);
-        rects.push(nextxr)
-        let nextxryu = Object.assign({}, nextxr);
-        for (var j=1;j<=yradius;j+=1){
-          nextxryu = buildRectangle(nextxryu.topleft,10,"right","top",i,j);
-          rects.push(nextxryu)
-        }
-        let nextxryd = Object.assign({}, nextxr);
-        for (var j=1;j<=yradius+1;j+=1){
-          nextxryd = buildRectangle(nextxryd.topleft,10,"right","down",i,1-j);
-          if (j>1) rects.push(nextxryd)
-        }
+    let rects = [];
+    let homeBottomLeft = InitBottomLeftCorner(location,10);
+    let xradius = Math.ceil(window.innerWidth/(2*104));
+    let yradius = Math.ceil(window.innerHeight/(2*104));
+    let home = buildRectangle(homeBottomLeft,10);
+    let nextxr = home;
+    for (var i=1;i<=xradius;i+=1){
+      nextxr = buildRectangle(nextxr.bottomright,10,"right","top",i,0);
+      rects.push(nextxr)
+      let nextxryu = Object.assign({}, nextxr);
+      for (var j=1;j<=yradius;j+=1){
+        nextxryu = buildRectangle(nextxryu.topleft,10,"right","top",i,j);
+        rects.push(nextxryu)
       }
-      let nextxl = home;
-      for (var i=2;i<=xradius+3;i+=1){
-        nextxl = buildRectangle(nextxl.bottomright,10,"left","top",2-i,0);
-        if (i>1 && i<=xradius+2) rects.push(nextxl)
-        let nextxlyu = Object.assign({}, nextxl);
-        for (var j=1;j<=yradius;j+=1){
-          nextxlyu = buildRectangle(nextxlyu.topleft,10,"right","top",3-i,j);
-          if (i>2) rects.push(nextxlyu)
-        }
-        let nextxlyd = Object.assign({}, nextxl);
-        for (var j=1;j<=yradius+1;j+=1){
-          nextxlyd = buildRectangle(nextxlyd.topleft,10,"right","down",3-i,1-j);
-          if (i>2 && j>1) rects.push(nextxlyd)
-        }
+      let nextxryd = Object.assign({}, nextxr);
+      for (var j=1;j<=yradius+1;j+=1){
+        nextxryd = buildRectangle(nextxryd.topleft,10,"right","down",i,1-j);
+        if (j>1) rects.push(nextxryd)
       }
-      setRectangleSets(rects);
     }
-  },[location]);
+    let nextxl = home;
+    for (var i=2;i<=xradius+3;i+=1){
+      nextxl = buildRectangle(nextxl.bottomright,10,"left","top",2-i,0);
+      if (i>1 && i<=xradius+2) rects.push(nextxl)
+      let nextxlyu = Object.assign({}, nextxl);
+      for (var j=1;j<=yradius;j+=1){
+        nextxlyu = buildRectangle(nextxlyu.topleft,10,"right","top",3-i,j);
+        if (i>2) rects.push(nextxlyu)
+      }
+      let nextxlyd = Object.assign({}, nextxl);
+      for (var j=1;j<=yradius+1;j+=1){
+        nextxlyd = buildRectangle(nextxlyd.topleft,10,"right","down",3-i,1-j);
+        if (i>2 && j>1) rects.push(nextxlyd)
+      }
+    }
+    setRectangleSets(rects);
+  },[isLocationLoaded]);
   
   useEffect(() => {
     console.log(owned)
@@ -224,10 +292,10 @@ const Toby = ({purchaseModalOpenState, tollModalOpenState}) => {
                 attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
               />
               {rectangleSets.length && rectangleSets.map((rectObj) => {
-                const currentOwned = ownedRef.current;
+                const currentOwned = owned;
                 let ownership = "unowned";
                 if (rectObj.y in currentOwned && rectObj.x in currentOwned[rectObj.y]){
-                  ownership = ownedRef.current[rectObj.y][rectObj.x];
+                  ownership = currentOwned[rectObj.y][rectObj.x];
                 }
                 return (<Rectangle key={`${rectObj.x}-${rectObj.y}-${ownership}`} bounds={rectObj.rect} className={"styled-rectangle-"+ownership} eventHandlers={{
                   click: ()=>{
@@ -235,18 +303,24 @@ const Toby = ({purchaseModalOpenState, tollModalOpenState}) => {
                     // alert('square is owned by: '+ownership+' ['+rectObj.x+','+rectObj.y+']')
                     console.log('send query to location: ['+parseInt(onloadOrigin.coorLat+rectObj.x)+','+parseInt(onloadOrigin.coorLng+rectObj.y)+']');
                     
-                    const currentOwned = JSON.parse(JSON.stringify(ownedRef.current)); // deep copy
-                    if(!currentOwned[rectObj.y]) {
-                      currentOwned[rectObj.y] = {};
+                    // const currentOwned = JSON.parse(JSON.stringify(ownedRef.current)); // deep copy
+                    // if(!currentOwned[rectObj.y]) {
+                    //   currentOwned[rectObj.y] = {};
+                    // }
+                    // currentOwned[rectObj.y][rectObj.x] = 'yourself';
+                    if (ownership=='unowned'){
+                      setPurchaseModalOpen({open:true,absx:parseInt(onloadOrigin.coorLat+rectObj.x),absy:parseInt(onloadOrigin.coorLng+rectObj.y),relx:rectObj.x,rely:rectObj.y});
+                    } else if (ownership=='other'){
+                      setReadOtherModalOpen({open:true});
+                    } else if (ownership=='yourself'){
+                      setReadYourselfModalOpen({open:true});
                     }
-                    currentOwned[rectObj.y][rectObj.x] = 'yourself';
-                    setPurchaseModalOpen(true);
-                    setOwned(currentOwned);
+                    
                     // setOwned((prevState) => ({
                     //   ...prevState,
                     //   [rectObj.y]:{
-                    //     ...(currentOwned[rectObj.y] || {}),
-                    //     [rectObj.x]:'other'
+                    //     ...(prevState[rectObj.y] || {}),
+                    //     [rectObj.x]:'yourself'
                     //   }
                     // }));
                   },

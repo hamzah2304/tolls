@@ -7,7 +7,7 @@ export default function Modal({children,title,openstate,successbtntext="",succes
 
   return (
 	<>
-	  {isOpen && (
+	  {isOpen.open && (
 		<>
 			<div className="dark-bg-popup"></div>
 			<div className="popup">
@@ -16,7 +16,7 @@ export default function Modal({children,title,openstate,successbtntext="",succes
 						<h3>{title}</h3>
 						<div className="btns-row-right-close">
 							<div className='custom-btn' onClick={()=>{
-								setIsOpen(false);
+								setIsOpen({open:false});
 							}}>	
 								<p className='p-desc'>Close</p>
 							</div>
@@ -27,7 +27,7 @@ export default function Modal({children,title,openstate,successbtntext="",succes
 						<div className="btns-row-right-done">
 							<div className='custom-btn' onClick={()=>{
 								successbtnOnClick();
-								setIsOpen(false);
+								setIsOpen({open:false});
 							}}>	
 								<p className='p-desc'>{successbtntext}</p>
 							</div>
