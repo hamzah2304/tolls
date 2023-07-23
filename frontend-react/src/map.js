@@ -13,7 +13,6 @@ import Modal from "./components/Modal";
 
 import { useSigner, useAccount } from "wagmi";
 
-
 import {
   tollsMainContract,
   getUserCredit,
@@ -25,7 +24,6 @@ import {
   buyLand,
   getLandInfo,
 } from "./interact";
-
 
 const ICON = icon({
   iconUrl: "/person-marker.png",
@@ -41,6 +39,7 @@ const Map = ({
 }) => {
   console.log(purchaseModalOpenState);
   let [purchaseModalOpen, setPurchaseModalOpen] = purchaseModalOpenState;
+  let [owned, setOwned] = ownedState;
   let [readYourselfModalOpen, setReadYourselfModalOpen] =
     readYourselfModalOpenState;
   let [readOtherModalOpen, setReadOtherModalOpen] = readOtherModalOpenState;
@@ -50,6 +49,7 @@ const Map = ({
   const [userInfo, setUserInfo] = useState();
   const [owner, setOwner] = useState("");
   const [status, setStatus] = useState("");
+  const [tokenAmount, setTokenAmount] = useState("");
 
   const { address } = useAccount();
 
@@ -73,7 +73,6 @@ const Map = ({
 
   let [onloadOrigin, setOnloadOrigin] = useState({});
 
-  let [owned, setOwned] = ownedState;
   //
   // const ownedRef = useRef(owned);
   // const setOwned = (newOwned) => {
@@ -100,7 +99,7 @@ const Map = ({
     console.error(error);
   };
 
-  function initLocTransaction(ownership) {
+  function initLocTransaction(ownership, lat, lng) {
     if (ownership == "other") {
       setTollModalOpen({ open: true });
       console.log("location + pay toll");
@@ -110,6 +109,46 @@ const Map = ({
   }
 
   // ---------------------------------------------
+
+  const amount_sent = "0.0001";
+  const onLandBuy = async (_latitude, _longitude, amount_sent) => {
+    console.log("attempting to buy land...");
+    console.log("Latitude:", _latitude);
+    console.log("Longitude:", _longitude);
+    const { status } = await buyLand(
+      _latitude,
+      _longitude,
+      address,
+      amount_sent
+    );
+    setStatus(status);
+  };
+
+  const handleTokenAmountChange = (event) => {
+    setTokenAmount(event.target.value);
+  };
+
+  const handleDepositFormSubmit = async (tokenAmount) => {
+    // Call the function to handle the form submission (e.g., send a transaction)
+    console.log("attempting to deposit credits...");
+    const { status } = await depositTokens(tokenAmount, address);
+    setStatus(status);
+
+    // Optionally, reset the form fields after submission
+    setTokenAmount("");
+  };
+
+  const handleQueryLandArea = async (_latitude, _longitude) => {
+    // Your logic to send the transaction or perform actions with the form data
+    console.log("Latitude:", _latitude);
+    console.log("Longitude:", _longitude);
+    // Example: send the transaction using window.ethereum.request and eth_sendTransaction
+    // ... (refer to the previous example for sending a transaction)
+
+    const landInfo = await getLandInfo(_latitude, _longitude);
+    const owner = landInfo.owner;
+    setOwner(owner);
+  };
 
   async function getBalance() {
     const retrievedBalance = await getUserCredit(
@@ -150,7 +189,7 @@ const Map = ({
   useEffect(() => {
     console.log("changed", onloadOrigin);
     setLastLoc({ coorLat: 0, coorLng: 0 });
-    initLocTransaction(owned[0][0]);
+    initLocTransaction(owned[0][0], 0, 0);
   }, [onloadOrigin]);
 
   useEffect(() => {
@@ -186,52 +225,91 @@ const Map = ({
   }, []);
 
   useEffect(() => {
-    console.log("use", lastLoc);
-    if (lastLoc.coorLat != null && lastLoc.coorLng != null) {
-      function handleKeyPress(event) {
-        console.log(`Pressed key: ${event.key}`);
-        if (event.key === "r") {
-          if (navigator.geolocation) {
-            console.log("start get loc r");
-            navigator.geolocation.getCurrentPosition(
-              (position) => {
-                console.log("loc r", position);
-                setLocation({
-                  latitude: position.coords.latitude,
-                  longitude: position.coords.longitude,
-                });
-                let newLoc = determineLatticeCoor(position.coords, 10);
-                console.log(newLoc, lastLoc);
-                if (
-                  newLoc.coorLat != lastLoc.coorLat ||
-                  newLoc.coorLng != lastLoc.coorLng
-                ) {
-                  setLastLoc(newLoc);
-                  initLocTransaction(owned[newLoc.coorLng][newLoc.coorLat]);
-                }
-              },
-              (error) => {
-                alert("Unable to retrieve your location.");
-                console.error(error);
+    setInterval(function () {
+      if (lastLoc.coorLat != null && lastLoc.coorLng != null) {
+        console.log(`5 sec location refresh`);
+        if (navigator.geolocation) {
+          console.log("start get loc 5sec");
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              console.log("loc 5 sec", position);
+              setLocation({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+              });
+              let newLoc = determineLatticeCoor(position.coords, 10);
+              console.log(newLoc, lastLoc);
+              if (
+                newLoc.coorLat != lastLoc.coorLat ||
+                newLoc.coorLng != lastLoc.coorLng
+              ) {
+                setLastLoc(newLoc);
+                initLocTransaction(
+                  owned[newLoc.coorLng][newLoc.coorLat],
+                  newLoc.coorLat,
+                  newLoc.coorLng
+                );
               }
-            );
-          } else {
-            alert("Geolocation is not supported by this browser.");
-          }
+            },
+            (error) => {
+              alert("Unable to retrieve your location.");
+              console.error(error);
+            }
+          );
+        } else {
+          alert("Geolocation is not supported by this browser.");
         }
       }
+    }, 5000);
+  }, [lastLoc]);
 
-      // Add the keypress event listener to the window
-      window.addEventListener("keypress", handleKeyPress);
+  // useEffect(() => {
+  //   console.log("use", lastLoc);
+  //   if (lastLoc.coorLat != null && lastLoc.coorLng != null) {
+  //     function handleKeyPress(event) {
+  //       console.log(`Pressed key: ${event.key}`);
+  //       if (event.key === "r") {
+  //         if (navigator.geolocation) {
+  //           console.log("start get loc r");
+  //           navigator.geolocation.getCurrentPosition(
+  //             (position) => {
+  //               console.log("loc r", position);
+  //               setLocation({
+  //                 latitude: position.coords.latitude,
+  //                 longitude: position.coords.longitude,
+  //               });
+  //               let newLoc = determineLatticeCoor(position.coords, 10);
+  //               console.log(newLoc, lastLoc);
+  //               if (
+  //                 newLoc.coorLat != lastLoc.coorLat ||
+  //                 newLoc.coorLng != lastLoc.coorLng
+  //               ) {
+  //                 setLastLoc(newLoc);
+  //                 initLocTransaction(owned[newLoc.coorLng][newLoc.coorLat]);
+  //               }
+  //             },
+  //             (error) => {
+  //               alert("Unable to retrieve your location.");
+  //               console.error(error);
+  //             }
+  //           );
+  //         } else {
+  //           alert("Geolocation is not supported by this browser.");
+  //         }
+  //       }
+  //     }
 
-      // Make sure to cleanup the listener when the component is unmounted
-      return () => {
-        window.removeEventListener("keypress", handleKeyPress);
-      };
-    } else {
-      console.log("too early to refresh loc");
-    }
-  }, [lastLoc]); // Empty array means this effect runs once on mount and cleanup on unmount
+  //     // Add the keypress event listener to the window
+  //     window.addEventListener("keypress", handleKeyPress);
+
+  //     // Make sure to cleanup the listener when the component is unmounted
+  //     return () => {
+  //       window.removeEventListener("keypress", handleKeyPress);
+  //     };
+  //   } else {
+  //     console.log("too early to refresh loc");
+  //   }
+  // }, [lastLoc]); // Empty array means this effect runs once on mount and cleanup on unmount
 
   // <div className="flex justify-center items-center h-screen">
   //   <div>
@@ -408,164 +486,191 @@ const Map = ({
 
   return (
     <>
-    <nav class="navbar">
-      <a href="http:localhost:3000/" target={"_blank"}>
+      <nav class="navbar">
+        <a href="http:localhost:3000/" target={"_blank"}>
+          <div>
+            <h2 class="navtitle">Tolls</h2>
+            {/* <img src="/tollslogo.png"/> */}
+          </div>
+          {/* <img className={styles.alchemy_logo} src="/cw3d-logo.png"></img> */}
+        </a>
+        <div className="btns-right">
+          <Modal
+            title={"You wanna buy this land??"}
+            openstate={purchaseModalOpenState}
+            successbtntext={"Buy"}
+            successbtnOnClick={() => {
+              onLandBuy(
+                purchaseModalOpen.absx,
+                purchaseModalOpen.absy,
+                amount_sent
+              ).then(() => {
+                setOwned((prevState) => ({
+                  ...prevState,
+                  [purchaseModalOpen.rely]: {
+                    ...(prevState[purchaseModalOpen.rely] || {}),
+                    [purchaseModalOpen.relx]: "yourself",
+                  },
+                }));
+              });
+            }}
+          >
+            <p>Try to buy this land lol. It will cost you 100 TOLL</p>
+          </Modal>
+          <Modal
+            title={"You own this land"}
+            openstate={readYourselfModalOpenState}
+          >
+            <p>You own this land: {owner}</p>
+          </Modal>
+          <Modal
+            title={"This land is owned"}
+            openstate={readOtherModalOpenState}
+          >
+            <p>This land is owned by {owner}</p>
+          </Modal>
+          <Modal title={"A toll is due"} openstate={tollModalOpenState}>
+            <p>You owe {10} TOLL for passing through someone's land.</p>
+          </Modal>
+          <ModalWithButton
+            title={"Deposit TOLL Tokens"}
+            btntext={"Deposit TOLL"}
+            successbtntext={"Deposit"}
+            successbtnOnClick={() => {
+              handleDepositFormSubmit(tokenAmount);
+            }}
+          >
+            <p>Choose amount to deposit:</p>
+            <input
+              type="number"
+              id="token_amount"
+              value={tokenAmount}
+              onChange={handleTokenAmountChange}
+              required
+              className={"deposit-toll"}
+              placeholder={`${balance} TOLL`}
+            />
+          </ModalWithButton>
+          <ModalWithButton
+            title={"TOLL Balance"}
+            btnimg={"/TOLL.png"}
+            btntext={`${balance} TOLL`}
+          >
+            <p>You have {balance} TOLL in your account</p>
+            <a href="https://etherscan.io/">Check etherscan</a>
+          </ModalWithButton>
+          <ConnectButton></ConnectButton>
+        </div>
+      </nav>
+      <div className="App">
         <div>
-          <h2 class="navtitle">Tolls</h2>
-          {/* <img src="/tollslogo.png"/> */}
-        </div>
-        {/* <img className={styles.alchemy_logo} src="/cw3d-logo.png"></img> */}
-      </a>
-      <div className="btns-right">
-        <Modal
-          title={"You wanna buy this land??"}
-          openstate={purchaseModalOpenState}
-          successbtntext={"Buy"}
-          successbtnOnClick={() => {
-            setOwned((prevState) => ({
-              ...prevState,
-              [purchaseModalOpen.rely]: {
-                ...(prevState[purchaseModalOpen.rely] || {}),
-                [purchaseModalOpen.relx]: "yourself",
-              },
-            }));
-          }}
-        >
-          <p>Try to buy this land lol. It will cost you 100 TOLL</p>
-        </Modal>
-        <Modal
-          title={"You own this land"}
-          openstate={readYourselfModalOpenState}
-        >
-          <p>You own this land lol</p>
-        </Modal>
-        <Modal title={"This land is owned"} openstate={readOtherModalOpenState}>
-          <p>This land is owned lol</p>
-        </Modal>
-        <Modal title={"A toll is due"} openstate={tollModalOpenState}>
-          <p>You owe {10} TOLL for passing through someone's land.</p>
-        </Modal>
-        <ModalWithButton
-          title={"Deposit TOLL Tokens"}
-          btntext={"Deposit TOLL"}
-          successbtntext={"Deposit"}
-          successbtnOnClick={() => {
-            handleDepositFormSubmit(tokenAmount);
-          }}
-        >
-          <p>Choose amount to deposit:</p>
-          <input
-            type="number"
-            id="token_amount"
-            value={tokenAmount}
-            onChange={handleTokenAmountChange}
-            required
-            className={"deposit-toll"}
-            placeholder={`${balance} TOLL`}
-          />
-        </ModalWithButton>
-        <ModalWithButton title={"TOLL Balance"} btnimg={"/TOLL.png"} btntext={`${balance} TOLL`}>
-          <p>You have {balance} TOLL in your account</p>  
-          <a href="https://etherscan.io/">Check etherscan</a>
-        </ModalWithButton>
-        <ConnectButton></ConnectButton>
-      </div>
-    </nav>
-    <div className="App">
-      <div>
-        <div
-          className={
-            rectangleSets.length ? "rectanglesloaded" : "rectanglesunloaded"
-          }
-        >
-          {location.latitude && location.longitude ? (
-            <div>
-              <MapContainer
-                center={[location.latitude, location.longitude]}
-                zoom={20}
-                zoomControl={false}
-                doubleClickZoom={false}
-                scrollWheelZoom={false}
-                dragging={false}
-              >
-                <TileLayer
-                  maxZoom={20}
-                  maxNativeZoom={20}
-                  url="https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png"
-                  attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-                />
-                {rectangleSets.length &&
-                  rectangleSets.map((rectObj) => {
-                    const currentOwned = owned;
-                    let ownership = "unowned";
-                    if (
-                      rectObj.y in currentOwned &&
-                      rectObj.x in currentOwned[rectObj.y]
-                    ) {
-                      ownership = currentOwned[rectObj.y][rectObj.x];
-                    }
-                    return (
-                      <Rectangle
-                        key={`${rectObj.x}-${rectObj.y}-${ownership}`}
-                        bounds={rectObj.rect}
-                        className={"styled-rectangle-" + ownership}
-                        eventHandlers={{
-                          click: () => {
-                            console.log(rectObj.x, rectObj.y);
-                            // alert('square is owned by: '+ownership+' ['+rectObj.x+','+rectObj.y+']')
-                            console.log(
-                              "send query to location: [" +
-                                parseInt(onloadOrigin.coorLat + rectObj.x) +
-                                "," +
-                                parseInt(onloadOrigin.coorLng + rectObj.y) +
-                                "]"
-                            );
-  
-                            // const currentOwned = JSON.parse(JSON.stringify(ownedRef.current)); // deep copy
-                            // if(!currentOwned[rectObj.y]) {
-                            //   currentOwned[rectObj.y] = {};
-                            // }
-                            // currentOwned[rectObj.y][rectObj.x] = 'yourself';
-                            if (ownership == "unowned") {
-                              setPurchaseModalOpen({
-                                open: true,
-                                absx: parseInt(onloadOrigin.coorLat + rectObj.x),
-                                absy: parseInt(onloadOrigin.coorLng + rectObj.y),
-                                relx: rectObj.x,
-                                rely: rectObj.y,
-                              });
-                            } else if (ownership == "other") {
-                              setReadOtherModalOpen({ open: true });
-                            } else if (ownership == "yourself") {
-                              setReadYourselfModalOpen({ open: true });
-                            }
-  
-                            // setOwned((prevState) => ({
-                            //   ...prevState,
-                            //   [rectObj.y]:{
-                            //     ...(prevState[rectObj.y] || {}),
-                            //     [rectObj.x]:'yourself'
-                            //   }
-                            // }));
-                          },
-                        }}
-                      />
-                    );
-                  })}
-                <Marker
-                  icon={ICON}
-                  position={[location.latitude, location.longitude]}
-                />
-              </MapContainer>
-            </div>
-          ) : (
-            <div className="loading-container">
-              <p>Loading...</p>
-            </div>
-          )}
+          <div
+            className={
+              rectangleSets.length ? "rectanglesloaded" : "rectanglesunloaded"
+            }
+          >
+            {location.latitude && location.longitude ? (
+              <div>
+                <MapContainer
+                  center={[location.latitude, location.longitude]}
+                  zoom={20}
+                  zoomControl={false}
+                  doubleClickZoom={false}
+                  scrollWheelZoom={false}
+                  dragging={false}
+                >
+                  <TileLayer
+                    maxZoom={20}
+                    maxNativeZoom={20}
+                    url="https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png"
+                    attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+                  />
+                  {rectangleSets.length &&
+                    rectangleSets.map((rectObj) => {
+                      const currentOwned = owned;
+                      let ownership = "unowned";
+                      if (
+                        rectObj.y in currentOwned &&
+                        rectObj.x in currentOwned[rectObj.y]
+                      ) {
+                        ownership = currentOwned[rectObj.y][rectObj.x];
+                      }
+                      return (
+                        <Rectangle
+                          key={`${rectObj.x}-${rectObj.y}-${ownership}`}
+                          bounds={rectObj.rect}
+                          className={"styled-rectangle-" + ownership}
+                          eventHandlers={{
+                            click: () => {
+                              console.log(rectObj.x, rectObj.y);
+                              // alert('square is owned by: '+ownership+' ['+rectObj.x+','+rectObj.y+']')
+                              console.log(
+                                "send query to location: [" +
+                                  parseInt(onloadOrigin.coorLat + rectObj.x) +
+                                  "," +
+                                  parseInt(onloadOrigin.coorLng + rectObj.y) +
+                                  "]"
+                              );
+
+                              // const currentOwned = JSON.parse(JSON.stringify(ownedRef.current)); // deep copy
+                              // if(!currentOwned[rectObj.y]) {
+                              //   currentOwned[rectObj.y] = {};
+                              // }
+                              // currentOwned[rectObj.y][rectObj.x] = 'yourself';
+                              if (ownership == "unowned") {
+                                setPurchaseModalOpen({
+                                  open: true,
+                                  absx: parseInt(
+                                    onloadOrigin.coorLat + rectObj.x
+                                  ),
+                                  absy: parseInt(
+                                    onloadOrigin.coorLng + rectObj.y
+                                  ),
+                                  relx: rectObj.x,
+                                  rely: rectObj.y,
+                                });
+                              } else if (ownership == "other") {
+                                handleQueryLandArea(
+                                  parseInt(onloadOrigin.coorLat + rectObj.x),
+                                  parseInt(onloadOrigin.coorLng + rectObj.y)
+                                ).then(() => {
+                                  setReadOtherModalOpen({ open: true });
+                                });
+                              } else if (ownership == "yourself") {
+                                handleQueryLandArea(
+                                  parseInt(onloadOrigin.coorLat + rectObj.x),
+                                  parseInt(onloadOrigin.coorLng + rectObj.y)
+                                ).then(() => {
+                                  setReadYourselfModalOpen({ open: true });
+                                });
+                              }
+
+                              // setOwned((prevState) => ({
+                              //   ...prevState,
+                              //   [rectObj.y]:{
+                              //     ...(prevState[rectObj.y] || {}),
+                              //     [rectObj.x]:'yourself'
+                              //   }
+                              // }));
+                            },
+                          }}
+                        />
+                      );
+                    })}
+                  <Marker
+                    icon={ICON}
+                    position={[location.latitude, location.longitude]}
+                  />
+                </MapContainer>
+              </div>
+            ) : (
+              <div className="loading-container">
+                <p>Loading...</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
 };

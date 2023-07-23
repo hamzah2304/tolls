@@ -153,6 +153,8 @@ export const buyLand = async (latitude, longitude, address, amount_sent) => {
     };
   }
 
+  console.log("Latitude in interact:", latitude);
+  console.log("Longitude in interact:", longitude);
   const amountInWei = web3.utils.toWei(amount_sent, "ether");
   console.log("amountInWei:", amountInWei);
 
@@ -165,6 +167,8 @@ export const buyLand = async (latitude, longitude, address, amount_sent) => {
       .buyLandArea(latitude, longitude)
       .encodeABI(),
   };
+
+  console.log("transaction parameters:", transactionParameters);
 
   //sign the transaction
   try {
