@@ -110,7 +110,7 @@ const Map = ({
 
   // ---------------------------------------------
 
-  const amount_sent = "0.0001";
+  // const amount_sent = "0.0001";
   const onLandBuy = async (_latitude, _longitude, amount_sent) => {
     console.log("attempting to buy land...");
     console.log("Latitude:", _latitude);
@@ -148,6 +148,7 @@ const Map = ({
     const landInfo = await getLandInfo(_latitude, _longitude);
     const owner = landInfo.owner;
     setOwner(owner);
+    return owner;
   };
 
   async function getBalance() {
@@ -224,92 +225,92 @@ const Map = ({
     }
   }, []);
 
-  useEffect(() => {
-    setInterval(function () {
-      if (lastLoc.coorLat != null && lastLoc.coorLng != null) {
-        console.log(`5 sec location refresh`);
-        if (navigator.geolocation) {
-          console.log("start get loc 5sec");
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              console.log("loc 5 sec", position);
-              setLocation({
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-              });
-              let newLoc = determineLatticeCoor(position.coords, 10);
-              console.log(newLoc, lastLoc);
-              if (
-                newLoc.coorLat != lastLoc.coorLat ||
-                newLoc.coorLng != lastLoc.coorLng
-              ) {
-                setLastLoc(newLoc);
-                initLocTransaction(
-                  owned[newLoc.coorLng][newLoc.coorLat],
-                  newLoc.coorLat,
-                  newLoc.coorLng
-                );
-              }
-            },
-            (error) => {
-              alert("Unable to retrieve your location.");
-              console.error(error);
-            }
-          );
-        } else {
-          alert("Geolocation is not supported by this browser.");
-        }
-      }
-    }, 5000);
-  }, [lastLoc]);
-
   // useEffect(() => {
-  //   console.log("use", lastLoc);
-  //   if (lastLoc.coorLat != null && lastLoc.coorLng != null) {
-  //     function handleKeyPress(event) {
-  //       console.log(`Pressed key: ${event.key}`);
-  //       if (event.key === "r") {
-  //         if (navigator.geolocation) {
-  //           console.log("start get loc r");
-  //           navigator.geolocation.getCurrentPosition(
-  //             (position) => {
-  //               console.log("loc r", position);
-  //               setLocation({
-  //                 latitude: position.coords.latitude,
-  //                 longitude: position.coords.longitude,
-  //               });
-  //               let newLoc = determineLatticeCoor(position.coords, 10);
-  //               console.log(newLoc, lastLoc);
-  //               if (
-  //                 newLoc.coorLat != lastLoc.coorLat ||
-  //                 newLoc.coorLng != lastLoc.coorLng
-  //               ) {
-  //                 setLastLoc(newLoc);
-  //                 initLocTransaction(owned[newLoc.coorLng][newLoc.coorLat]);
-  //               }
-  //             },
-  //             (error) => {
-  //               alert("Unable to retrieve your location.");
-  //               console.error(error);
+  //   setInterval(function () {
+  //     if (lastLoc.coorLat != null && lastLoc.coorLng != null) {
+  //       console.log(`5 sec location refresh`);
+  //       if (navigator.geolocation) {
+  //         console.log("start get loc 5sec");
+  //         navigator.geolocation.getCurrentPosition(
+  //           (position) => {
+  //             console.log("loc 5 sec", position);
+  //             setLocation({
+  //               latitude: position.coords.latitude,
+  //               longitude: position.coords.longitude,
+  //             });
+  //             let newLoc = determineLatticeCoor(position.coords, 10);
+  //             console.log(newLoc, lastLoc);
+  //             if (
+  //               newLoc.coorLat != lastLoc.coorLat ||
+  //               newLoc.coorLng != lastLoc.coorLng
+  //             ) {
+  //               setLastLoc(newLoc);
+  //               initLocTransaction(
+  //                 owned[newLoc.coorLng][newLoc.coorLat],
+  //                 newLoc.coorLat,
+  //                 newLoc.coorLng
+  //               );
   //             }
-  //           );
-  //         } else {
-  //           alert("Geolocation is not supported by this browser.");
-  //         }
+  //           },
+  //           (error) => {
+  //             alert("Unable to retrieve your location.");
+  //             console.error(error);
+  //           }
+  //         );
+  //       } else {
+  //         alert("Geolocation is not supported by this browser.");
   //       }
   //     }
+  //   }, 5000);
+  // }, [lastLoc]);
 
-  //     // Add the keypress event listener to the window
-  //     window.addEventListener("keypress", handleKeyPress);
+  useEffect(() => {
+    console.log("use", lastLoc);
+    if (lastLoc.coorLat != null && lastLoc.coorLng != null) {
+      function handleKeyPress(event) {
+        console.log(`Pressed key: ${event.key}`);
+        if (event.key === "r") {
+          if (navigator.geolocation) {
+            console.log("start get loc r");
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                console.log("loc r", position);
+                setLocation({
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                });
+                let newLoc = determineLatticeCoor(position.coords, 10);
+                console.log(newLoc, lastLoc);
+                if (
+                  newLoc.coorLat != lastLoc.coorLat ||
+                  newLoc.coorLng != lastLoc.coorLng
+                ) {
+                  setLastLoc(newLoc);
+                  initLocTransaction(owned[newLoc.coorLng][newLoc.coorLat]);
+                }
+              },
+              (error) => {
+                alert("Unable to retrieve your location.");
+                console.error(error);
+              }
+            );
+          } else {
+            alert("Geolocation is not supported by this browser.");
+          }
+        }
+      }
 
-  //     // Make sure to cleanup the listener when the component is unmounted
-  //     return () => {
-  //       window.removeEventListener("keypress", handleKeyPress);
-  //     };
-  //   } else {
-  //     console.log("too early to refresh loc");
-  //   }
-  // }, [lastLoc]); // Empty array means this effect runs once on mount and cleanup on unmount
+      // Add the keypress event listener to the window
+      window.addEventListener("keypress", handleKeyPress);
+
+      // Make sure to cleanup the listener when the component is unmounted
+      return () => {
+        window.removeEventListener("keypress", handleKeyPress);
+      };
+    } else {
+      console.log("too early to refresh loc");
+    }
+  }, [lastLoc]); // Empty array means this effect runs once on mount and cleanup on unmount
 
   // <div className="flex justify-center items-center h-screen">
   //   <div>
@@ -473,6 +474,38 @@ const Map = ({
         if (i > 2 && j > 1) rects.push(nextxlyd);
       }
     }
+    // for (var r of rects) {
+    //   console.log(onloadOrigin);
+    //   let x = onloadOrigin.coorLat + r.x;
+    //   let y = onloadOrigin.coorLng + r.y;
+    //   handleQueryLandArea(x, y).then((addr) => {
+    //     if (addr == address) {
+    //       setOwned((prevState) => ({
+    //         ...prevState,
+    //         [r.y]: {
+    //           ...(prevState[r.y] || {}),
+    //           [r.x]: "yourself",
+    //         },
+    //       }));
+    //     } else if (addr == "0x0000000000000000000000000000000000000000") {
+    //       setOwned((prevState) => ({
+    //         ...prevState,
+    //         [r.y]: {
+    //           ...(prevState[r.y] || {}),
+    //           [r.x]: "other",
+    //         },
+    //       }));
+    //     } else {
+    //       setOwned((prevState) => ({
+    //         ...prevState,
+    //         [r.y]: {
+    //           ...(prevState[r.y] || {}),
+    //           [r.x]: "unowned",
+    //         },
+    //       }));
+    //     }
+    //   });
+    // }
     setRectangleSets(rects);
   }, [isLocationLoaded]);
 
@@ -503,7 +536,7 @@ const Map = ({
               onLandBuy(
                 purchaseModalOpen.absx,
                 purchaseModalOpen.absy,
-                amount_sent
+                "0.0001"
               ).then(() => {
                 setOwned((prevState) => ({
                   ...prevState,
