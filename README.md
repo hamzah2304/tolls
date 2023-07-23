@@ -1,6 +1,6 @@
 # tolls
 
-Mantle deployed smart contract: https://explorer.testnet.mantle.xyz/address/0x9Fb6B034b9E0448a98EF979900bF4c979c6A13D6
+Mantle deployed AND VERIFIED smart contract: https://explorer.testnet.mantle.xyz/address/0x9Fb6B034b9E0448a98EF979900bF4c979c6A13D6
 
 Gnosis deployed smart contract: https://gnosisscan.io/address/0x9Fb6B034b9E0448a98EF979900bF4c979c6A13D6
 
