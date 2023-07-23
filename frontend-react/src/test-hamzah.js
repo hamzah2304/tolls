@@ -9,7 +9,6 @@ import {
   depositTokens,
   buyLand,
   getLandInfo,
-  addSmartContractListener,
 } from "./interact";
 
 import { useAccount } from "wagmi";

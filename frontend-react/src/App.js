@@ -2,6 +2,7 @@ import logo from "./logo.svg";
 import "./App.css";
 import Toby from "./test-toby";
 import Hamzah from "./test-hamzah";
+import Map from "./map";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import React, { useState } from "react";
 
@@ -34,37 +35,44 @@ const wagmiConfig = createConfig({
 });
 
 function App() {
-  let purchaseModalOpenState = useState({open:false});
-  let tollModalOpenState = useState({open:false});
-  let readOtherModalOpenState = useState({open:false});
-  let readYourselfModalOpenState = useState({open:false});
+  let purchaseModalOpenState = useState({ open: false });
+  let tollModalOpenState = useState({ open: false });
+  let readOtherModalOpenState = useState({ open: false });
+  let readYourselfModalOpenState = useState({ open: false });
 
   let ownedState = useState({
     0: {
-      0: 'yourself',
-      1: 'other',
-      2: 'other',
+      0: "yourself",
+      1: "other",
+      2: "other",
     },
     1: {
-      '-1': 'yourself',
-      0: 'yourself',
-      1: 'yourself',
-      2: 'other',
-      3: 'other',
+      "-1": "yourself",
+      0: "yourself",
+      1: "yourself",
+      2: "other",
+      3: "other",
     },
     2: {
-      0: 'other',
-      1: 'other',
-    }
+      0: "other",
+      1: "other",
+    },
   });
-  
+
   return (
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider chains={chains}>
         <Router>
-          <Navbar purchaseModalOpenState={purchaseModalOpenState} tollModalOpenState={tollModalOpenState} ownedState={ownedState} readYourselfModalOpenState={readYourselfModalOpenState} readOtherModalOpenState={readOtherModalOpenState} />
+          <Navbar
+            purchaseModalOpenState={purchaseModalOpenState}
+            tollModalOpenState={tollModalOpenState}
+            ownedState={ownedState}
+            readYourselfModalOpenState={readYourselfModalOpenState}
+            readOtherModalOpenState={readOtherModalOpenState}
+          />
           <div className="App">
-            { (window.location.pathname != '/test-toby') ? (
+            {window.location.pathname != "/test-toby" ||
+            window.location.pathname != "/map" ? (
               <>
                 <p>
                   <Link to="/test-toby">Test Toby</Link>
@@ -72,12 +80,41 @@ function App() {
                 <p>
                   <Link to="/test-hamzah">Test Hamzah</Link>
                 </p>
+                <p>
+                  <Link to="/map">Map</Link>
+                </p>
               </>
-              ) : (<></>)
-            }
+            ) : (
+              <></>
+            )}
             <Routes>
-              <Route exact path="/test-toby" element={<Toby purchaseModalOpenState={purchaseModalOpenState} tollModalOpenState={tollModalOpenState} ownedState={ownedState} readOtherModalOpenState={readOtherModalOpenState} readYourselfModalOpenState={readYourselfModalOpenState}/>}></Route>
+              <Route
+                exact
+                path="/test-toby"
+                element={
+                  <Toby
+                    purchaseModalOpenState={purchaseModalOpenState}
+                    tollModalOpenState={tollModalOpenState}
+                    ownedState={ownedState}
+                    readOtherModalOpenState={readOtherModalOpenState}
+                    readYourselfModalOpenState={readYourselfModalOpenState}
+                  />
+                }
+              ></Route>
               <Route exact path="/test-hamzah" element={<Hamzah />}></Route>
+              <Route
+                exact
+                path="/map"
+                element={
+                  <Map
+                    purchaseModalOpenState={purchaseModalOpenState}
+                    tollModalOpenState={tollModalOpenState}
+                    ownedState={ownedState}
+                    readOtherModalOpenState={readOtherModalOpenState}
+                    readYourselfModalOpenState={readYourselfModalOpenState}
+                  />
+                }
+              ></Route>
             </Routes>
           </div>
         </Router>
