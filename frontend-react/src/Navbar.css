@@ -124,4 +124,12 @@
   .navbar {
     margin: 1rem 2rem 0.4rem 2rem;
   }
+  
+  .navbar .btns-right .custom-btn {
+    display: none;
+  }
+  
+  .navbar .btns-right .popup .custom-btn {
+    display: block;
+  }
 }
