@@ -5,12 +5,26 @@ import "leaflet/dist/leaflet.css";
 
 import { icon } from "leaflet";
 
+import {
+  tollsMainContract,
+  getUserCredit,
+  loadCurrentMessage,
+  getUserInfo,
+  updateMessage,
+  writeUserLocation,
+  depositTokens,
+  buyLand,
+  getLandInfo,
+} from "./interact";
+
+import { useAccount } from "wagmi";
+
 const ICON = icon({
   iconUrl: "/person-marker.png",
   iconSize: [32, 32],
 });
 
-const Toby = ({
+const Map = ({
   purchaseModalOpenState,
   tollModalOpenState,
   readYourselfModalOpenState,
@@ -23,6 +37,13 @@ const Toby = ({
     readYourselfModalOpenState;
   let [readOtherModalOpen, setReadOtherModalOpen] = readOtherModalOpenState;
   let [tollModalOpen, setTollModalOpen] = tollModalOpenState;
+
+  const [balance, setBalance] = useState("No balance retrieved");
+  const [userInfo, setUserInfo] = useState();
+  const [owner, setOwner] = useState("");
+  const [status, setStatus] = useState("");
+
+  const { address } = useAccount();
 
   console.log("Toby component is rendering");
 
@@ -79,6 +100,44 @@ const Toby = ({
       console.log("just location");
     }
   }
+
+  // ---------------------------------------------
+
+  async function getBalance() {
+    const retrievedBalance = await getUserCredit(
+      "0xD26a77BE873CDc25F0238634326f85986E6cBd1F"
+    );
+    setBalance(retrievedBalance);
+  }
+
+  function addSmartContractListener() {
+    tollsMainContract.events.TollPayment({}, (error, data) => {
+      if (error) {
+        console.log("event listener error:", error.message);
+      } else {
+        getBalance();
+        console.log("Toll payment made");
+      }
+    });
+  }
+
+  useEffect(() => {
+    async function retrieveUserInfo() {
+      const retrievedUserInfo = await getUserInfo(
+        "0xD26a77BE873CDc25F0238634326f85986E6cBd1F"
+      );
+      console.log(retrieveUserInfo);
+      const retrievedUserLocation = [
+        retrievedUserInfo.latitude,
+        retrievedUserInfo.longitude,
+      ];
+      setUserInfo(retrievedUserLocation);
+    }
+
+    getBalance();
+    retrieveUserInfo();
+    addSmartContractListener();
+  }, []);
 
   useEffect(() => {
     console.log("changed", onloadOrigin);
@@ -436,4 +495,4 @@ const Toby = ({
   );
 };
 
-export default Toby;
+export default Map;
