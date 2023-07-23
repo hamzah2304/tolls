@@ -60,7 +60,7 @@
 }
 
 .popup {
-  background:rgb(234, 230, 230);
+  background:rgb(244,244,244);
   padding: 20px;
   position:fixed;
   border-radius: 12px;
@@ -68,6 +68,7 @@
   top:300px;
   left:50%;
   transform:translateX(-50%);
+  box-shadow: rgba(0, 0, 0, 0.32) 0px 8px 32px 0px;
 }
 
 .popup-top-line {

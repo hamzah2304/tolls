@@ -4,7 +4,14 @@ import styles from "../Navbar.css";
 import ModalWithButton from '../components/ModalWithButton'
 import Modal from '../components/Modal'
 
+import { useSigner } from 'wagmi';
+
+
 export default function Navbar({purchaseModalOpenState, tollModalOpenState, readYourselfModalOpenState,readOtherModalOpenState,ownedState}) {
+  
+  {/* const {data: signer} = useSigner(); */}
+  {/* const web3 = new Web3((signer?.provider as any).provider); */}
+  
   let [purchaseModalOpen,setPurchaseModalOpen] = purchaseModalOpenState;
   let [owned,setOwned] = ownedState;
   return (
@@ -12,6 +19,7 @@ export default function Navbar({purchaseModalOpenState, tollModalOpenState, read
       <a href="http:localhost:3000/" target={"_blank"}>
         <div>
           <h2 class="navtitle">Tolls</h2>
+          {/* <img src="/tollslogo.png"/> */}
         </div>
         {/* <img className={styles.alchemy_logo} src="/cw3d-logo.png"></img> */}
       </a>
@@ -25,8 +33,7 @@ export default function Navbar({purchaseModalOpenState, tollModalOpenState, read
             }
           }));
         }}>
-          <p>Try to buy this land lol</p>  
-          <input className={'buy-land'} placeholder={'100 TOLL'}></input>
+          <p>Try to buy this land lol. It will cost you 100 TOLL</p>
         </Modal>
         <Modal title={"You own this land"} openstate={readYourselfModalOpenState} >
           <p>You own this land lol</p>  

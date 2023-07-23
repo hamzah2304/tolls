@@ -19,17 +19,17 @@ html body {
 }
 
 .styled-rectangle-other {
-  fill: red; /* Set the fill color to red */
+  fill: rgb(217,75,91);
   stroke: grey; /* Set the border color to grey */
   stroke-width: 2px; /* Set the border width to 2 pixels */
 }
 .styled-rectangle-yourself {
-  fill: green; /* Set the fill color to red */
+  fill: rgb(117,209,54); /* Set the fill color to red */
   stroke: grey; /* Set the border color to grey */
   stroke-width: 2px; /* Set the border width to 2 pixels */
 }
 .styled-rectangle-unowned {
-  opacity: 0.2;
+  opacity: 0.1;
   fill: grey; /* Set the fill color to red */
   stroke: grey; /* Set the border color to grey */
   stroke-width: 2px; /* Set the border width to 2 pixels */
