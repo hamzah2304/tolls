@@ -5,6 +5,15 @@ import "leaflet/dist/leaflet.css";
 
 import { icon } from "leaflet";
 
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import styles from "./Navbar.css";
+
+import ModalWithButton from "./components/ModalWithButton";
+import Modal from "./components/Modal";
+
+import { useSigner, useAccount } from "wagmi";
+
+
 import {
   tollsMainContract,
   getUserCredit,
@@ -17,7 +26,6 @@ import {
   getLandInfo,
 } from "./interact";
 
-import { useAccount } from "wagmi";
 
 const ICON = icon({
   iconUrl: "/person-marker.png",
@@ -399,99 +407,166 @@ const Map = ({
   const redOptions = { color: "red" };
 
   return (
-    <div>
-      <div
-        className={
-          rectangleSets.length ? "rectanglesloaded" : "rectanglesunloaded"
-        }
-      >
-        {location.latitude && location.longitude ? (
-          <div>
-            <MapContainer
-              center={[location.latitude, location.longitude]}
-              zoom={20}
-              zoomControl={false}
-              doubleClickZoom={false}
-              scrollWheelZoom={false}
-              dragging={false}
-            >
-              <TileLayer
-                maxZoom={20}
-                maxNativeZoom={20}
-                url="https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-              />
-              {rectangleSets.length &&
-                rectangleSets.map((rectObj) => {
-                  const currentOwned = owned;
-                  let ownership = "unowned";
-                  if (
-                    rectObj.y in currentOwned &&
-                    rectObj.x in currentOwned[rectObj.y]
-                  ) {
-                    ownership = currentOwned[rectObj.y][rectObj.x];
-                  }
-                  return (
-                    <Rectangle
-                      key={`${rectObj.x}-${rectObj.y}-${ownership}`}
-                      bounds={rectObj.rect}
-                      className={"styled-rectangle-" + ownership}
-                      eventHandlers={{
-                        click: () => {
-                          console.log(rectObj.x, rectObj.y);
-                          // alert('square is owned by: '+ownership+' ['+rectObj.x+','+rectObj.y+']')
-                          console.log(
-                            "send query to location: [" +
-                              parseInt(onloadOrigin.coorLat + rectObj.x) +
-                              "," +
-                              parseInt(onloadOrigin.coorLng + rectObj.y) +
-                              "]"
-                          );
-
-                          // const currentOwned = JSON.parse(JSON.stringify(ownedRef.current)); // deep copy
-                          // if(!currentOwned[rectObj.y]) {
-                          //   currentOwned[rectObj.y] = {};
-                          // }
-                          // currentOwned[rectObj.y][rectObj.x] = 'yourself';
-                          if (ownership == "unowned") {
-                            setPurchaseModalOpen({
-                              open: true,
-                              absx: parseInt(onloadOrigin.coorLat + rectObj.x),
-                              absy: parseInt(onloadOrigin.coorLng + rectObj.y),
-                              relx: rectObj.x,
-                              rely: rectObj.y,
-                            });
-                          } else if (ownership == "other") {
-                            setReadOtherModalOpen({ open: true });
-                          } else if (ownership == "yourself") {
-                            setReadYourselfModalOpen({ open: true });
-                          }
-
-                          // setOwned((prevState) => ({
-                          //   ...prevState,
-                          //   [rectObj.y]:{
-                          //     ...(prevState[rectObj.y] || {}),
-                          //     [rectObj.x]:'yourself'
-                          //   }
-                          // }));
-                        },
-                      }}
-                    />
-                  );
-                })}
-              <Marker
-                icon={ICON}
-                position={[location.latitude, location.longitude]}
-              />
-            </MapContainer>
-          </div>
-        ) : (
-          <div className="loading-container">
-            <p>Loading...</p>
-          </div>
-        )}
+    <>
+    <nav class="navbar">
+      <a href="http:localhost:3000/" target={"_blank"}>
+        <div>
+          <h2 class="navtitle">Tolls</h2>
+          {/* <img src="/tollslogo.png"/> */}
+        </div>
+        {/* <img className={styles.alchemy_logo} src="/cw3d-logo.png"></img> */}
+      </a>
+      <div className="btns-right">
+        <Modal
+          title={"You wanna buy this land??"}
+          openstate={purchaseModalOpenState}
+          successbtntext={"Buy"}
+          successbtnOnClick={() => {
+            setOwned((prevState) => ({
+              ...prevState,
+              [purchaseModalOpen.rely]: {
+                ...(prevState[purchaseModalOpen.rely] || {}),
+                [purchaseModalOpen.relx]: "yourself",
+              },
+            }));
+          }}
+        >
+          <p>Try to buy this land lol. It will cost you 100 TOLL</p>
+        </Modal>
+        <Modal
+          title={"You own this land"}
+          openstate={readYourselfModalOpenState}
+        >
+          <p>You own this land lol</p>
+        </Modal>
+        <Modal title={"This land is owned"} openstate={readOtherModalOpenState}>
+          <p>This land is owned lol</p>
+        </Modal>
+        <Modal title={"A toll is due"} openstate={tollModalOpenState}>
+          <p>You owe {10} TOLL for passing through someone's land.</p>
+        </Modal>
+        <ModalWithButton
+          title={"Deposit TOLL Tokens"}
+          btntext={"Deposit TOLL"}
+          successbtntext={"Deposit"}
+          successbtnOnClick={() => {
+            handleDepositFormSubmit(tokenAmount);
+          }}
+        >
+          <p>Choose amount to deposit:</p>
+          <input
+            type="number"
+            id="token_amount"
+            value={tokenAmount}
+            onChange={handleTokenAmountChange}
+            required
+            className={"deposit-toll"}
+            placeholder={`${balance} TOLL`}
+          />
+        </ModalWithButton>
+        <ModalWithButton title={"TOLL Balance"} btnimg={"/TOLL.png"} btntext={`${balance} TOLL`}>
+          <p>You have {balance} TOLL in your account</p>  
+          <a href="https://etherscan.io/">Check etherscan</a>
+        </ModalWithButton>
+        <ConnectButton></ConnectButton>
+      </div>
+    </nav>
+    <div className="App">
+      <div>
+        <div
+          className={
+            rectangleSets.length ? "rectanglesloaded" : "rectanglesunloaded"
+          }
+        >
+          {location.latitude && location.longitude ? (
+            <div>
+              <MapContainer
+                center={[location.latitude, location.longitude]}
+                zoom={20}
+                zoomControl={false}
+                doubleClickZoom={false}
+                scrollWheelZoom={false}
+                dragging={false}
+              >
+                <TileLayer
+                  maxZoom={20}
+                  maxNativeZoom={20}
+                  url="https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png"
+                  attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+                />
+                {rectangleSets.length &&
+                  rectangleSets.map((rectObj) => {
+                    const currentOwned = owned;
+                    let ownership = "unowned";
+                    if (
+                      rectObj.y in currentOwned &&
+                      rectObj.x in currentOwned[rectObj.y]
+                    ) {
+                      ownership = currentOwned[rectObj.y][rectObj.x];
+                    }
+                    return (
+                      <Rectangle
+                        key={`${rectObj.x}-${rectObj.y}-${ownership}`}
+                        bounds={rectObj.rect}
+                        className={"styled-rectangle-" + ownership}
+                        eventHandlers={{
+                          click: () => {
+                            console.log(rectObj.x, rectObj.y);
+                            // alert('square is owned by: '+ownership+' ['+rectObj.x+','+rectObj.y+']')
+                            console.log(
+                              "send query to location: [" +
+                                parseInt(onloadOrigin.coorLat + rectObj.x) +
+                                "," +
+                                parseInt(onloadOrigin.coorLng + rectObj.y) +
+                                "]"
+                            );
+  
+                            // const currentOwned = JSON.parse(JSON.stringify(ownedRef.current)); // deep copy
+                            // if(!currentOwned[rectObj.y]) {
+                            //   currentOwned[rectObj.y] = {};
+                            // }
+                            // currentOwned[rectObj.y][rectObj.x] = 'yourself';
+                            if (ownership == "unowned") {
+                              setPurchaseModalOpen({
+                                open: true,
+                                absx: parseInt(onloadOrigin.coorLat + rectObj.x),
+                                absy: parseInt(onloadOrigin.coorLng + rectObj.y),
+                                relx: rectObj.x,
+                                rely: rectObj.y,
+                              });
+                            } else if (ownership == "other") {
+                              setReadOtherModalOpen({ open: true });
+                            } else if (ownership == "yourself") {
+                              setReadYourselfModalOpen({ open: true });
+                            }
+  
+                            // setOwned((prevState) => ({
+                            //   ...prevState,
+                            //   [rectObj.y]:{
+                            //     ...(prevState[rectObj.y] || {}),
+                            //     [rectObj.x]:'yourself'
+                            //   }
+                            // }));
+                          },
+                        }}
+                      />
+                    );
+                  })}
+                <Marker
+                  icon={ICON}
+                  position={[location.latitude, location.longitude]}
+                />
+              </MapContainer>
+            </div>
+          ) : (
+            <div className="loading-container">
+              <p>Loading...</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
+    </>
   );
 };
 

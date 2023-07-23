@@ -62,62 +62,13 @@ function App() {
   return (
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider chains={chains}>
-        <Router>
-          <Navbar
-            purchaseModalOpenState={purchaseModalOpenState}
-            tollModalOpenState={tollModalOpenState}
-            ownedState={ownedState}
-            readYourselfModalOpenState={readYourselfModalOpenState}
-            readOtherModalOpenState={readOtherModalOpenState}
-          />
-          <div className="App">
-            {window.location.pathname != "/test-toby" ||
-            window.location.pathname != "/map" ? (
-              <>
-                <p>
-                  <Link to="/test-toby">Test Toby</Link>
-                </p>
-                <p>
-                  <Link to="/test-hamzah">Test Hamzah</Link>
-                </p>
-                <p>
-                  <Link to="/map">Map</Link>
-                </p>
-              </>
-            ) : (
-              <></>
-            )}
-            <Routes>
-              <Route
-                exact
-                path="/test-toby"
-                element={
-                  <Toby
-                    purchaseModalOpenState={purchaseModalOpenState}
-                    tollModalOpenState={tollModalOpenState}
-                    ownedState={ownedState}
-                    readOtherModalOpenState={readOtherModalOpenState}
-                    readYourselfModalOpenState={readYourselfModalOpenState}
-                  />
-                }
-              ></Route>
-              <Route exact path="/test-hamzah" element={<Hamzah />}></Route>
-              <Route
-                exact
-                path="/map"
-                element={
-                  <Map
-                    purchaseModalOpenState={purchaseModalOpenState}
-                    tollModalOpenState={tollModalOpenState}
-                    ownedState={ownedState}
-                    readOtherModalOpenState={readOtherModalOpenState}
-                    readYourselfModalOpenState={readYourselfModalOpenState}
-                  />
-                }
-              ></Route>
-            </Routes>
-          </div>
-        </Router>
+        <Map
+          purchaseModalOpenState={purchaseModalOpenState}
+          tollModalOpenState={tollModalOpenState}
+          ownedState={ownedState}
+          readOtherModalOpenState={readOtherModalOpenState}
+          readYourselfModalOpenState={readYourselfModalOpenState}
+        />
       </RainbowKitProvider>
     </WagmiConfig>
   );
